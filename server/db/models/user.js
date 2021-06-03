@@ -47,6 +47,44 @@ User.authenticate = async function({ username, password }){
     return user.generateToken();
 };
 
+User.authenticateWithGithub = async function(code){
+  let response = await axios.post( 'https://github.com/login/oauth/access_token', {
+    code: code,
+    client_id: process.env.client_id,
+    client_secret: process.env.client_secret
+  }, {
+    headers: {
+      accept: 'application/json'
+    }
+  });
+
+  const data = response.data;
+  console.log(data);
+  if(data.error){
+    const error = Error(data.error);
+    error.status = 401;
+    throw error;
+  }
+
+  response = await axios.get('https://api.github.com/user', {
+    headers: {
+      Authorization: `token ${data.access_token}`
+    }
+  });
+
+  const { login, id } = response.data;
+  let user = await User.findOne({
+    where: { githubId: id }
+  });
+  if(!user){
+    user = await User.create({
+      githubId: id,
+      username: login
+    });
+  }
+  return user.generateToken();
+}
+
 User.findByToken = async function(token) {
   try {
     const {id} = await jwt.verify(token, process.env.JWT)

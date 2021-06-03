@@ -13,9 +13,31 @@ app.use(morgan('dev'))
 // body parsing middleware
 app.use(express.json())
 
+const { models: { User }} = require('./db');
+
+app.get('/api/github/callback', async(req, res, next)=> {
+  try {
+    const token = await User.authenticateWithGithub(req.query.code);
+    res.send(`
+      <html>
+        <script>
+        window.localStorage.setItem('token', '${ token }');
+        window.document.location = '/';
+        </script>
+      </html>
+    `);
+
+  }
+  catch(ex){
+    next(ex);
+
+  }
+});
+
 // auth and api routes
 app.use('/auth', require('./auth'))
 app.use('/api', require('./api'))
+
 
 const returnHomePage = (req, res) => {
   res.render(path.join(__dirname, '..', 'public/index.html'), { client_id: process.env.client_id });
