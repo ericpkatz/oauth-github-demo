@@ -20,6 +20,7 @@ const Navbar = ({handleClick, isLoggedIn}) => (
           {/* The navbar will show these links before you log in */}
           <Link to="/login">Login</Link>
           <Link to="/signup">Sign Up</Link>
+          <a href={`https://github.com/login/oauth/authorize?client_id=${window.client_id}`}>Sign In With Github</a>
         </div>
       )}
     </nav>

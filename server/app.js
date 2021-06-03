@@ -4,6 +4,9 @@ const morgan = require('morgan')
 const app = express()
 module.exports = app
 
+
+app.engine('html', require('ejs').renderFile);
+
 // logging middleware
 app.use(morgan('dev'))
 
@@ -14,7 +17,11 @@ app.use(express.json())
 app.use('/auth', require('./auth'))
 app.use('/api', require('./api'))
 
-app.get('/', (req, res)=> res.sendFile(path.join(__dirname, '..', 'public/index.html')));
+const returnHomePage = (req, res) => {
+  res.render(path.join(__dirname, '..', 'public/index.html'), { client_id: process.env.client_id });
+}
+
+app.get('/', returnHomePage); 
 
 // static file-serving middleware
 app.use(express.static(path.join(__dirname, '..', 'public')))
@@ -31,9 +38,7 @@ app.use((req, res, next) => {
 })
 
 // sends index.html
-app.use('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public/index.html'));
-})
+app.use('*', returnHomePage)
 
 // error handling endware
 app.use((err, req, res, next) => {
